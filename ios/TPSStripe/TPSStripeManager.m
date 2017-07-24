@@ -118,12 +118,13 @@ RCT_EXPORT_METHOD(deviceSupportsApplePay:(RCTPromiseResolveBlock)resolve
     resolve(@([PKPaymentAuthorizationViewController canMakePayments]));
 }
 
+
 RCT_EXPORT_METHOD(canMakeApplePayPayments:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     NSArray <NSString *> *paymentNetworksStrings =
     options[@"networks"] ?: [TPSStripeManager supportedPaymentNetworksStrings];
-    
+
     NSArray <PKPaymentNetwork> *networks = [self paymentNetworks:paymentNetworksStrings];
     resolve(@([PKPaymentAuthorizationViewController canMakePaymentsUsingNetworks:networks]));
 }
@@ -196,11 +197,11 @@ RCT_EXPORT_METHOD(createTokenWithBankAccount:(NSDictionary *)params
                );
         return;
     }
-    
+
     requestIsCompleted = NO;
-    
+
     STPBankAccountParams *bankAccount = [[STPBankAccountParams alloc] init];
-    
+
     [bankAccount setAccountNumber: params[@"accountNumber"]];
     [bankAccount setCountry: params[@"countryCode"]];
     [bankAccount setCurrency: params[@"currency"]];
@@ -209,10 +210,10 @@ RCT_EXPORT_METHOD(createTokenWithBankAccount:(NSDictionary *)params
     STPBankAccountHolderType accountHolderType =
     [RCTConvert STPBankAccountHolderType:params[@"accountHolderType"]];
     [bankAccount setAccountHolderType: accountHolderType];
-    
+
     [[STPAPIClient sharedClient] createTokenWithBankAccount:bankAccount completion:^(STPToken *token, NSError *error) {
         requestIsCompleted = YES;
-        
+
         if (error) {
             reject(nil, nil, error);
         } else {
@@ -342,6 +343,25 @@ RCT_EXPORT_METHOD(openApplePaySetup) {
         [library openPaymentSetup];
     }
 }
+
+RCT_EXPORT_METHOD(createSofortSource: (NSDictionary *) params
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+
+
+    STPSourceParams *sourceParams = [STPSourceParams sofortParamsWithAmount:[[NSDecimalNumber decimalNumberWithString: params[@"amount"]] doubleValue] * 100
+                                                                                                           returnURL: params[@"country"]
+                                                                                                             country: params[@"country"]
+                                                                                                 statementDescriptor: params[@"statmentDescriptor"]];
+
+                                     [[STPAPIClient sharedClient] createSourceWithParams:sourceParams completion:^(STPSource *source, NSError *error) {
+        if (source) {
+            resolve(source);
+        } else {
+            reject(@"error code",@"error creating payment source",error);
+        }
+    }];
+
 
 #pragma mark STPAddCardViewControllerDelegate
 
@@ -665,14 +685,14 @@ RCT_EXPORT_METHOD(openApplePaySetup) {
 
 - (NSArray <PKPaymentNetwork> *)paymentNetworks:(NSArray <NSString *> *)paymentNetworkStrings {
     NSMutableArray <PKPaymentNetwork> *results = [@[] mutableCopy];
-    
+
     for (NSString *paymentNetworkString in paymentNetworkStrings) {
         PKPaymentNetwork paymentNetwork = [self paymentNetwork:paymentNetworkString];
         if (paymentNetwork) {
             [results addObject:paymentNetwork];
         }
     }
-    
+
     return [results copy];
 }
 
@@ -681,26 +701,26 @@ RCT_EXPORT_METHOD(openApplePaySetup) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         NSMutableDictionary *mutableMap = [@{} mutableCopy];
-        
+
         if ((&PKPaymentNetworkAmex) != NULL) {
             mutableMap[TPSPaymentNetworkAmex] = PKPaymentNetworkAmex;
         }
-        
+
         if ((&PKPaymentNetworkDiscover) != NULL) {
             mutableMap[TPSPaymentNetworkDiscover] = PKPaymentNetworkDiscover;
         }
-        
+
         if ((&PKPaymentNetworkMasterCard) != NULL) {
             mutableMap[TPSPaymentNetworkMasterCard] = PKPaymentNetworkMasterCard;
         }
-        
+
         if ((&PKPaymentNetworkVisa) != NULL) {
             mutableMap[TPSPaymentNetworkVisa] = PKPaymentNetworkVisa;
         }
-        
+
         paymentNetworksMap = [mutableMap copy];
     });
-    
+
     return paymentNetworksMap[paymentNetworkString];
 }
 

@@ -22,12 +22,19 @@ class Stripe {
   cancelApplePayRequest = () => (
     TPSStripeManager.cancelApplePayRequest()
   )
+  createSofortSource = (options = {}) => (
+    TPSStripeManager.createSofortSource({
+      ...options
+    })
+  )
+
   paymentRequestWithCardForm = (options = {}) => (
     TPSStripeManager.paymentRequestWithCardForm({
       ...options,
       theme: processTheme(options.theme),
     })
   )
+
   createTokenWithCard = (params = {}) => (
     TPSStripeManager.createTokenWithCard(params)
   )
