@@ -21,6 +21,9 @@ class Stripe {
   createTokenWithBankAccount = (params = {}) => (
     StripeModule.createTokenWithBankAccount(params)
   )
+  createSofortSource = (params = {}) => (
+    StripeModule.createSofortSource(params)
+  )
 }
 
 export default new Stripe()

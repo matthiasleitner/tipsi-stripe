@@ -36,18 +36,22 @@ import com.google.android.gms.wallet.Wallet;
 import com.google.android.gms.wallet.WalletConstants;
 import com.stripe.android.Stripe;
 import com.stripe.android.TokenCallback;
+import com.stripe.android.SourceCallback;
 import com.stripe.android.exception.AuthenticationException;
 import com.stripe.android.model.BankAccount;
 import com.stripe.android.model.Card;
 import com.stripe.android.model.Token;
+import com.stripe.android.model.Source;
+import com.stripe.android.model.SourceParams;
 import com.stripe.android.net.StripeApiHandler;
 import com.stripe.android.net.TokenParser;
+import com.stripe.android.BuildConfig;
 
 import org.json.JSONException;
 
 public class StripeModule extends ReactContextBaseJavaModule {
 
-
+  private ReactApplicationContext mContext = null;
   private static final String TAG = StripeModule.class.getSimpleName();
   private static final String MODULE_NAME = "StripeModule";
 
@@ -113,6 +117,7 @@ public class StripeModule extends ReactContextBaseJavaModule {
   public StripeModule(ReactApplicationContext reactContext) {
     super(reactContext);
 
+    mContext = reactContext;
     // Add the listener for `onActivityResult`
     reactContext.addActivityEventListener(mActivityEventListener);
   }
@@ -126,8 +131,8 @@ public class StripeModule extends ReactContextBaseJavaModule {
   public void init(ReadableMap options) {
     publicKey = options.getString("publishableKey");
     try {
-      stripe = new Stripe(publicKey);
-    } catch (AuthenticationException e) {
+      stripe = new Stripe(mContext, publicKey);
+    } catch (Exception e) {
       Log.e(TAG, "init: ", e);
     }
   }
@@ -179,6 +184,37 @@ public class StripeModule extends ReactContextBaseJavaModule {
       googleApiClient.connect();
     } else {
       promise.reject(TAG, "Unknown error");
+    }
+  }
+
+  @ReactMethod
+  public void createSofortSource(final ReadableMap params, final Promise promise) {
+    try {
+
+      SourceParams cardSourceParams =
+        SourceParams.createSofortParams(
+          (long) (params.getDouble("amount") * 100),
+          params.getString("returnURL"),
+          params.getString("country"),
+          params.getString("statmentDescriptor"));
+
+      stripe.setStripeAccount("acct_1Aj6Y1E3LtMdvGOA");
+
+      stripe.createSource(
+          cardSourceParams,
+          new SourceCallback() {
+              @Override
+              public void onSuccess(Source source) {
+                 promise.resolve(convertSourceToWritableMap(source));
+              }
+              @Override
+              public void onError(Exception error) {
+                  error.printStackTrace();
+                  promise.reject(TAG, error.getMessage());
+              }
+          });
+    } catch (Exception e) {
+      promise.reject(TAG, e.getMessage());
     }
   }
 
@@ -294,7 +330,7 @@ public class StripeModule extends ReactContextBaseJavaModule {
         .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.PAYMENT_GATEWAY)
         .addParameter("gateway", "stripe")
         .addParameter("stripe:publishableKey", publicKey)
-        .addParameter("stripe:version", StripeApiHandler.VERSION)
+        .addParameter("stripe:version", BuildConfig.VERSION_NAME)
         .build())
       // You want the shipping address:
       .setShippingAddressRequired(true)
@@ -403,20 +439,21 @@ public class StripeModule extends ReactContextBaseJavaModule {
       cardData.getInt("expMonth"),
       cardData.getInt("expYear"),
       // additional fields
-      exist(cardData, "cvc"),
-      exist(cardData, "name"),
-      exist(cardData, "addressLine1"),
-      exist(cardData, "addressLine2"),
-      exist(cardData, "addressCity"),
-      exist(cardData, "addressState"),
-      exist(cardData, "addressZip"),
-      exist(cardData, "addressCountry"),
-      exist(cardData, "brand"),
-      exist(cardData, "last4"),
-      exist(cardData, "fingerprint"),
-      exist(cardData, "funding"),
-      exist(cardData, "country"),
-      exist(cardData, "currency")
+      exist(cardData, "cvc")
+      // ,
+      // exist(cardData, "name"),
+      // exist(cardData, "addressLine1"),
+      // exist(cardData, "addressLine2"),
+      // exist(cardData, "addressCity"),
+      // exist(cardData, "addressState"),
+      // exist(cardData, "addressZip"),
+      // exist(cardData, "addressCountry"),
+      // exist(cardData, "brand"),
+      // exist(cardData, "last4"),
+      // exist(cardData, "fingerprint"),
+      // exist(cardData, "funding"),
+      // exist(cardData, "country"),
+      // exist(cardData, "currency")
     );
   }
 
@@ -438,6 +475,18 @@ public class StripeModule extends ReactContextBaseJavaModule {
     }
 
     return newToken;
+  }
+
+  private WritableMap convertSourceToWritableMap(Source source) {
+    WritableMap newSource = Arguments.createMap();
+
+    if (source == null) return newSource;
+
+    newSource.putString("stripeID", source.getId());
+    newSource.putString("flow", source.getFlow());
+    newSource.putString("redirectUrl", source.getRedirect().getUrl());
+
+    return newSource;
   }
 
   private WritableMap convertCardToWritableMap(final Card card) {
