@@ -191,14 +191,13 @@ public class StripeModule extends ReactContextBaseJavaModule {
   public void createSofortSource(final ReadableMap params, final Promise promise) {
     try {
 
+    long amount = (long)  Math.round((params.getDouble("amount") * 100)* 100) / 100;
       SourceParams cardSourceParams =
         SourceParams.createSofortParams(
-          (long) (params.getDouble("amount") * 100),
+          amount,
           params.getString("returnURL"),
           params.getString("country"),
           params.getString("statmentDescriptor"));
-
-      stripe.setStripeAccount("acct_1Aj6Y1E3LtMdvGOA");
 
       stripe.createSource(
           cardSourceParams,

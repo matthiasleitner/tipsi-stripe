@@ -114,8 +114,8 @@ public class AddCardDialogFragment extends DialogFragment {
   private void bindViews(final View view) {
     progressBar = (ProgressBar) view.findViewById(R.id.buttonProgress);
     from = (CreditCardForm) view.findViewById(R.id.credit_card_form);
-    imageFlipedCard = (ImageView) view.findViewById(R.id.imageFlippedCard);
-    imageFlipedCardBack = (ImageView) view.findViewById(R.id.imageFlippedCardBack);
+    imageFlipedCard = (ImageView) view.findViewById(R.id.imageFlippedCard).setColorFilter(ContextCompat.getColor(context, R.color.colorAccent), android.graphics.PorterDuff.Mode.MULTIPLY);
+    imageFlipedCardBack = (ImageView) view.findViewById(R.id.imageFlippedCardBack).setColorFilter(ContextCompat.getColor(context, R.color.colorAccent), android.graphics.PorterDuff.Mode.MULTIPLY);
   }
 
 

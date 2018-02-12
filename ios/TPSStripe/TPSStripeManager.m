@@ -337,9 +337,9 @@ RCT_EXPORT_METHOD(createSofortSource: (NSDictionary *) params
                   rejecter:(RCTPromiseRejectBlock)reject) {
 
 
-    [[STPAPIClient sharedClient]  setStripeAccount:@"acct_1Aj6Y1E3LtMdvGOA"];
+    double amount = round(([params[@"amount"]doubleValue] * 10000)) / 100;
 
-    STPSourceParams *sourceParams = [STPSourceParams sofortParamsWithAmount:[params[@"amount"]doubleValue] * 100
+    STPSourceParams *sourceParams = [STPSourceParams sofortParamsWithAmount:amount
                                                                                                            returnURL: params[@"returnURL"]
                                                                                                              country: params[@"country"]
                                                                                                  statementDescriptor: params[@"statmentDescriptor"]];
