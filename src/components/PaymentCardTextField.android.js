@@ -1,10 +1,10 @@
-import React, { Component, PropTypes } from 'react'
+import React, { Component } from 'react'
 import { requireNativeComponent, findNodeHandle, StyleSheet, View, TouchableWithoutFeedback } from 'react-native'
 import StyleSheetPropType from 'react-native/Libraries/StyleSheet/StyleSheetPropType'
 import ViewStylePropTypes from 'react-native/Libraries/Components/View/ViewStylePropTypes'
 
 import TextInputState from 'react-native/Libraries/Components/TextInput/TextInputState'
-
+import PropTypes from 'prop-types'
 const FieldStylePropType = {
   ...ViewStylePropTypes,
   color: PropTypes.string,
