@@ -1,19 +1,18 @@
 import React, { Component } from 'react'
-import { requireNativeComponent, findNodeHandle, StyleSheet, View, TouchableWithoutFeedback } from 'react-native'
-import StyleSheetPropType from 'react-native/Libraries/StyleSheet/StyleSheetPropType'
-import ViewStylePropTypes from 'react-native/Libraries/Components/View/ViewStylePropTypes'
+import { ViewPropTypes, requireNativeComponent, findNodeHandle, StyleSheet, View, TouchableWithoutFeedback } from 'react-native'
+
 
 import TextInputState from 'react-native/Libraries/Components/TextInput/TextInputState'
 import PropTypes from 'prop-types'
 const FieldStylePropType = {
-  ...ViewStylePropTypes,
+  ...ViewPropTypes.style,
   color: PropTypes.string,
 }
 
 export default class PaymentCardTextField extends Component {
   static propTypes = {
     ...View.propTypes,
-    style: StyleSheetPropType(FieldStylePropType), // eslint-disable-line new-cap
+    style: FieldStylePropType,
 
     setEnabled: PropTypes.bool,
     backgroundColor: PropTypes.string,
