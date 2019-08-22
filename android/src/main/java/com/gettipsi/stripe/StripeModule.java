@@ -385,7 +385,7 @@ public class StripeModule extends ReactContextBaseJavaModule {
 
       @Override
       public void onSuccess(Source source) {
-        if (Source.SourceFlow.REDIRECT.equals(source.getFlow())) {
+        if (Source.SourceFlow.REDIRECT.equals(source.getFlow()) && !options.getBoolean("manualRedirect")) {
           Activity currentActivity = getCurrentActivity();
           if (currentActivity == null) {
             promise.reject(
