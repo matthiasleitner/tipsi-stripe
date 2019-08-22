@@ -236,12 +236,12 @@ class Stripe {
   redirectSourceWithParams = (params = {}) => {
     checkInit(this)
     checkArgs(
-      types.createSourceWithParamsPropType,
+      types.redirectSourceWithParamsPropType,
       params,
       'params',
-      'Stripe.createSourceWithParams'
+      'Stripe.redirectSourceWithParams'
     )
-    return StripeModule.createSourceWithParams(params)
+    return StripeModule.redirectSourceWithParams(params)
   }
 
   /**

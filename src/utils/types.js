@@ -193,6 +193,11 @@ export const createSourceWithParamsPropType = {
   manualRedirect: PropTypes.bool,
 }
 
+export const redirectSourceWithParamsPropType = {
+  sourceId: PropTypes.string,
+  clientSecret: PropTypes.string,
+}
+
 // Corresponds to https://stripe.com/docs/api/payment_methods/create
 export const createPaymentMethodPropType = {
   // BillingDetails properties:
