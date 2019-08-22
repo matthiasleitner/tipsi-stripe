@@ -233,6 +233,17 @@ class Stripe {
     return StripeModule.createSourceWithParams(params)
   }
 
+  redirectSourceWithParams = (params = {}) => {
+    checkInit(this)
+    checkArgs(
+      types.createSourceWithParamsPropType,
+      params,
+      'params',
+      'Stripe.createSourceWithParams'
+    )
+    return StripeModule.createSourceWithParams(params)
+  }
+
   /**
    * After calling this, you need to hit your backend with this method to get a clientSecret
    * @param {CreatePaymentMethodParams} params

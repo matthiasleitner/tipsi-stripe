@@ -687,48 +687,8 @@ RCT_EXPORT_METHOD(createSourceWithParams:(NSDictionary *)params
             NSDictionary *jsError = [self->errorCodes valueForKey:kErrorKeyApi];
             reject(jsError[kErrorKeyCode], error.localizedDescription, nil);
         } else {
-            if (source.redirect) {
-                self.redirectContext = [[STPRedirectContext alloc] initWithSource:source completion:^(NSString *sourceID, NSString *clientSecret, NSError *error) {
-                    if (error) {
-                        NSDictionary *jsError = [self->errorCodes valueForKey:kErrorKeyRedirectSpecific];
-                        reject(jsError[kErrorKeyCode], error.localizedDescription, nil);
-                    } else {
-                        [stripeAPIClient startPollingSourceWithId:sourceID clientSecret:clientSecret timeout:10 completion:^(STPSource *source, NSError *error) {
-                            if (error) {
-                                NSDictionary *jsError = [self->errorCodes valueForKey:kErrorKeyApi];
-                                reject(jsError[kErrorKeyCode], error.localizedDescription, nil);
-                            } else {
-                                switch (source.status) {
-                                    case STPSourceStatusChargeable:
-                                    case STPSourceStatusConsumed:
-                                        resolve([self convertSourceObject:source]);
-                                        break;
-                                    case STPSourceStatusCanceled: {
-                                        NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusCanceled];
-                                        reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
-                                    }
-                                        break;
-                                    case STPSourceStatusPending: {
-                                        NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusPending];
-                                        reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
-                                    }
-                                        break;
-                                    case STPSourceStatusFailed: {
-                                        NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusFailed];
-                                        reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
-                                    }
-                                        break;
-                                    case STPSourceStatusUnknown: {
-                                        NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusUnknown];
-                                        reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
-                                    }
-                                        break;
-                                }
-                            }
-                        }];
-                    }
-                }];
-                [self.redirectContext startSafariAppRedirectFlow];
+            if ([source.redirect && ![[params objectForKey:@"manualRedirect"] boolValue]]) {
+                [self redirectSource: source, resolver: resolv, rejecter: rejct];
             } else {
                 resolve([self convertSourceObject:source]);
             }
@@ -852,6 +812,52 @@ RCT_EXPORT_METHOD(openApplePaySetup) {
     if ([library respondsToSelector:NSSelectorFromString(@"openPaymentSetup")]) {
         [library openPaymentSetup];
     }
+}
+
+- (void)redirectSource: (STPSource *)source
+                resolver:(RCTPromiseResolveBlock)resolve
+                rejecter:(RCTPromiseRejectBlock)reject {
+    self.redirectContext = [[STPRedirectContext alloc] initwithSource:source completion:^(NSString *sourceID, NSString *clientSecret, NSError *error) {
+        if (error) {
+            NSDictionary *jsError = [self->errorCodes valueForKey:kErrorKeyRedirectSpecific];
+            reject(jsError[kErrorKeyCode], error.localizedDescription, nil);
+        } else {
+            [stripeAPIClient startPollingSourceWithId:sourceID clientSecret:clientSecret timeout:10 completion:^(STPSource *source, NSError *error) {
+                if (error) {
+                    NSDictionary *jsError = [self->errorCodes valueForKey:kErrorKeyApi];
+                    reject(jsError[kErrorKeyCode], error.localizedDescription, nil);
+                } else {
+                    switch (source.status) {
+                        case STPSourceStatusChargeable:
+                        case STPSourceStatusConsumed:
+                            resolve([self convertSourceObject:source]);
+                            break;
+                        case STPSourceStatusCanceled: {
+                            NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusCanceled];
+                            reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
+                        }
+                            break;
+                        case STPSourceStatusPending: {
+                            NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusPending];
+                            reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
+                        }
+                            break;
+                        case STPSourceStatusFailed: {
+                            NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusFailed];
+                            reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
+                        }
+                            break;
+                        case STPSourceStatusUnknown: {
+                            NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusUnknown];
+                            reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
+                        }
+                            break;
+                    }
+                }
+            }];
+        }
+    }];
+    [self.redirectContext startSafariAppRedirectFlow];
 }
 
 #pragma mark - Private - Converters

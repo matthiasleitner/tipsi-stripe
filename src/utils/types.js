@@ -190,6 +190,7 @@ export const createSourceWithParamsPropType = {
   funding: PropTypes.string,
   id: PropTypes.string,
   last4: PropTypes.string,
+  manualRedirect: PropTypes.bool,
 }
 
 // Corresponds to https://stripe.com/docs/api/payment_methods/create
