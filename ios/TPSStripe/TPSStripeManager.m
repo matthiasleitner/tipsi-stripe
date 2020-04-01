@@ -839,43 +839,10 @@ RCT_EXPORT_METHOD(openApplePaySetup) {
 
     self.redirectContext = [[STPRedirectContext alloc] initWithSource:source completion:^(NSString * _Nonnull sourceID, NSString * _Nullable clientSecret, NSError * _Nullable error) {
         if (error) {
-            NSDictionary *jsError = [self->errorCodes valueForKey:kErrorKeyRedirectSpecific];
-            reject(jsError[kErrorKeyCode], error.localizedDescription, nil);
+          NSDictionary *jsError = [self->errorCodes valueForKey:kErrorKeyRedirectSpecific];
+          reject(jsError[kErrorKeyCode], error.localizedDescription, nil);
         } else {
-            STPAPIClient *stripeAPIClient = [self newAPIClient];
-            [stripeAPIClient startPollingSourceWithId:sourceID clientSecret:clientSecret timeout:10 completion:^(STPSource *source, NSError *error) {
-                if (error) {
-                    NSDictionary *jsError = [self->errorCodes valueForKey:kErrorKeyApi];
-                    reject(jsError[kErrorKeyCode], error.localizedDescription, nil);
-                } else {
-                    switch (source.status) {
-                        case STPSourceStatusChargeable:
-                        case STPSourceStatusConsumed:
-                            resolve([self convertSourceObject:source]);
-                            break;
-                        case STPSourceStatusCanceled: {
-                            NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusCanceled];
-                            reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
-                        }
-                            break;
-                        case STPSourceStatusPending: {
-                            NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusPending];
-                            reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
-                        }
-                            break;
-                        case STPSourceStatusFailed: {
-                            NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusFailed];
-                            reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
-                        }
-                            break;
-                        case STPSourceStatusUnknown: {
-                            NSDictionary *error = [self->errorCodes valueForKey:kErrorKeySourceStatusUnknown];
-                            reject(error[kErrorKeyCode], error[kErrorKeyDescription], nil);
-                        }
-                            break;
-                    }
-                }
-            }];
+          resolve([self convertSourceObject:source]);
         }
     }];
     [self.redirectContext startSafariAppRedirectFlow];
