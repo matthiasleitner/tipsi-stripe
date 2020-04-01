@@ -790,14 +790,18 @@ RCT_EXPORT_METHOD(paymentRequestWithApplePay:(NSArray *)items
     }
 
     NSMutableArray *summaryItems = [NSMutableArray array];
+    NSDecimalNumber *totalAmount = [NSDecimalNumber zero];
 
     for (NSDictionary *item in items) {
         PKPaymentSummaryItem *summaryItem = [[PKPaymentSummaryItem alloc] init];
         summaryItem.label = item[@"label"];
         summaryItem.amount = [NSDecimalNumber decimalNumberWithString:item[@"amount"]];
         summaryItem.type = [@"pending" isEqualToString:item[@"type"]] ? PKPaymentSummaryItemTypePending : PKPaymentSummaryItemTypeFinal;
+          totalAmount = [totalAmount decimalNumberByAdding: [NSDecimalNumber decimalNumberWithString:item[@"amount"]]];
         [summaryItems addObject:summaryItem];
     }
+
+    [summaryItems addObject: [PKPaymentSummaryItem summaryItemWithLabel:options[@"merchantName"] amount:totalAmount]];
 
     PKPaymentRequest *paymentRequest = [Stripe paymentRequestWithMerchantIdentifier:merchantId country:countryCode currency:currencyCode];
 
