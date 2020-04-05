@@ -10,6 +10,8 @@
       "usage",
       "example",
       "paymentIntents",
+      "createCardOrSubscription",
+      "migrationIssues",
       "changelog"
     ],
     "Objects": [

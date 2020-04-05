@@ -41,6 +41,10 @@
         "title": ".completeNativePayRequest() -> Promise",
         "sidebar_label": ".completeNativePayRequest()"
       },
+      "createCardOrSubscription": {
+        "title": "Create Card Or Subscription",
+        "sidebar_label": "Save Card/Subscription"
+      },
       "createsourcewithparamsparams": {
         "title": ".createSourceWithParams(params) -> Promise",
         "sidebar_label": ".createSourceWithParams()"
@@ -92,6 +96,10 @@
       "linking": {
         "title": "Linking",
         "sidebar_label": "Linking"
+      },
+      "migrationIssues": {
+        "title": "Migration Guide & Issues",
+        "sidebar_label": "Migration"
       },
       "openapplepaysetup": {
         "title": ".openApplePaySetup()",

@@ -18,7 +18,9 @@ import com.stripe.android.SetupIntentResult;
 import com.stripe.android.model.Address;
 import com.stripe.android.model.BankAccount;
 import com.stripe.android.model.Card;
+import com.stripe.android.model.PaymentIntent;
 import com.stripe.android.model.PaymentMethod;
+import com.stripe.android.model.SetupIntent;
 import com.stripe.android.model.Source;
 import com.stripe.android.model.SourceCodeVerification;
 import com.stripe.android.model.SourceOwner;
@@ -239,11 +241,18 @@ public class Converters {
     WritableMap wm = Arguments.createMap();
 
     if (paymentIntentResult == null) {
+      wm.putString("status", "unknown");
       return wm;
     }
 
-    wm.putString("status", paymentIntentResult.getIntent().getStatus().toString());
-    wm.putString("paymentIntentId", paymentIntentResult.getIntent().getId());
+    PaymentIntent intent = paymentIntentResult.getIntent();
+    wm.putString("status", intent.getStatus().toString());
+    wm.putString("paymentIntentId", intent.getId());
+
+//    String paymentMethodId = intent.getPaymentMethodId();
+//    if (paymentMethodId != null) {
+//      wm.putString("paymentMethodId", paymentMethodId);
+//    }
     return wm;
   }
 
@@ -253,11 +262,18 @@ public class Converters {
     WritableMap wm = Arguments.createMap();
 
     if (setupIntentResult == null) {
+      wm.putString("status", "unknown");
       return wm;
     }
 
-    wm.putString("status", setupIntentResult.getIntent().getStatus().toString());
-    wm.putString("setupIntentId", setupIntentResult.getIntent().getId());
+    SetupIntent intent = setupIntentResult.getIntent();
+    wm.putString("status", intent.getStatus().toString());
+    wm.putString("setupIntentId", intent.getId());
+
+    String paymentMethodId = intent.getPaymentMethodId();
+    if (paymentMethodId != null) {
+      wm.putString("paymentMethodId", paymentMethodId);
+    }
     return wm;
   }
 

@@ -122,6 +122,16 @@
                         >
                       </li>
                       <li class="navListItem">
+                        <a class="navItem" href="/tipsi-stripe/docs/createCardOrSubscription.html"
+                          >Save Card/Subscription</a
+                        >
+                      </li>
+                      <li class="navListItem">
+                        <a class="navItem" href="/tipsi-stripe/docs/migrationIssues.html"
+                          >Migration</a
+                        >
+                      </li>
+                      <li class="navListItem">
                         <a class="navItem" href="/tipsi-stripe/docs/changelog.html">Changelog</a>
                       </li>
                     </ul>
@@ -418,10 +428,59 @@
 </code></pre>
                     <p>
                       More information about AndroidPay
-                      <a href="https://developers.google.com/android-pay/deployment"
+                      <a
+                        href="https://developers.google.com/pay/api/android/guides/test-and-deploy/integration-checklist"
                         >deployment and testing</a
                       >.
                     </p>
+                    <p>
+                      You will need to go through all points of the checklist. After that, you need
+                      to submit a production request form from the bottom of the page.
+                    </p>
+                    <p>
+                      After that, API team will send you confirmation from
+                      <code>googlepay-api-support@google.com</code> that they've started processing.
+                    </p>
+                    <p>
+                      When everything is done with a test application, you will need to enable the
+                      application by:
+                    </p>
+                    <ul>
+                      <li>
+                        Please have the account owner login to
+                        <a href="mailto:OWNER@EMAIL.HERE">OWNER@EMAIL.HERE</a> and access our
+                        <a href="https://payments.developers.google.com/signup">sign-up link</a>
+                      </li>
+                      <li>
+                        To ensure you are logged into the right account, click
+                        <a
+                          href="https://accounts.google.com/SignOutOptions?continue=https://payments.developers.google.com/signup"
+                          >here</a
+                        >
+                      </li>
+                      <li>
+                        Complete a profile, then on the next page, scroll down to Enable
+                        applications and they’ll see the package name.
+                      </li>
+                      <li>
+                        Only click Enable next to the corresponding package name and confirm with me
+                        once this has been completed.
+                      </li>
+                      <li>
+                        Once complete, your selected APK has production access, and you can
+                        configure your Android application to point to Environment_Production.
+                      </li>
+                      <li>
+                        After doing so, please provide a PROD APK for final review and launch
+                        clearance.
+                      </li>
+                    </ul>
+                    <p>
+                      After Google API team is able to make a test purchase, you will need to refund
+                      that test payment.
+                    </p>
+                    <p>That's all.</p>
+                    <p>And our best wishes to Anthony and Google Payment API Support Team.</p>
                   </span>
                 </div>
               </article>

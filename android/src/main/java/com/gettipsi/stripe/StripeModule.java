@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -36,11 +37,16 @@ import com.stripe.android.model.PaymentMethodCreateParams;
 import com.stripe.android.model.Source;
 import com.stripe.android.model.Source.SourceStatus;
 import com.stripe.android.model.SourceParams;
+import com.stripe.android.model.StripeIntent;
 import com.stripe.android.model.Token;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.gettipsi.stripe.Errors.AUTHENTICATION_FAILED;
+import static com.gettipsi.stripe.Errors.CANCELLED;
+import static com.gettipsi.stripe.Errors.FAILED;
+import static com.gettipsi.stripe.Errors.UNEXPECTED;
 import static com.gettipsi.stripe.Errors.getDescription;
 import static com.gettipsi.stripe.Errors.getErrorCode;
 import static com.gettipsi.stripe.Errors.toErrorCode;
@@ -54,11 +60,15 @@ import static com.gettipsi.stripe.util.Converters.createCard;
 import static com.gettipsi.stripe.util.Converters.getBooleanOrNull;
 import static com.gettipsi.stripe.util.Converters.getMapOrNull;
 import static com.gettipsi.stripe.util.Converters.getStringOrNull;
-
 import static com.gettipsi.stripe.util.InitializationOptions.ANDROID_PAY_MODE_KEY;
 import static com.gettipsi.stripe.util.InitializationOptions.ANDROID_PAY_MODE_PRODUCTION;
 import static com.gettipsi.stripe.util.InitializationOptions.ANDROID_PAY_MODE_TEST;
 import static com.gettipsi.stripe.util.InitializationOptions.PUBLISHABLE_KEY;
+import static com.stripe.android.model.StripeIntent.Status.Canceled;
+import static com.stripe.android.model.StripeIntent.Status.RequiresAction;
+import static com.stripe.android.model.StripeIntent.Status.RequiresCapture;
+import static com.stripe.android.model.StripeIntent.Status.RequiresConfirmation;
+import static com.stripe.android.model.StripeIntent.Status.Succeeded;
 
 public class StripeModule extends ReactContextBaseJavaModule {
 
@@ -71,7 +81,7 @@ public class StripeModule extends ReactContextBaseJavaModule {
   // - https://stripe.com/docs/building-plugins#setappinfo
   private static final String APP_INFO_NAME    = "tipsi-stripe";
   private static final String APP_INFO_URL     = "https://github.com/tipsi/tipsi-stripe";
-  private static final String APP_INFO_VERSION = "7.x";
+  private static final String APP_INFO_VERSION = "8.x";
   public static final String CLIENT_SECRET = "clientSecret";
 
   private static StripeModule sInstance = null;
@@ -177,6 +187,16 @@ public class StripeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void setStripeAccount(final String stripeAccount) {
+    ArgCheck.notEmptyString(mPublicKey);
+    if (stripeAccount == null) {
+      mStripe = new Stripe(getReactApplicationContext(), mPublicKey);
+    } else {
+      mStripe = new Stripe(getReactApplicationContext(), mPublicKey, stripeAccount);
+    }
+  }
+
+  @ReactMethod
   public void createTokenWithCard(final ReadableMap cardData, final Promise promise) {
     try {
       ArgCheck.nonNull(mStripe);
@@ -231,10 +251,8 @@ public class StripeModule extends ReactContextBaseJavaModule {
       ArgCheck.notEmptyString(mPublicKey);
 
       final AddCardDialogFragment cardDialog = AddCardDialogFragment.newInstance(
-        mPublicKey,
         getErrorCode(mErrorCodes, "cancelled"),
-        getDescription(mErrorCodes, "cancelled"),
-        params.hasKey("createCardSource") && params.getBoolean("createCardSource")
+        getDescription(mErrorCodes, "cancelled")
       );
       cardDialog.setPromise(promise);
       cardDialog.show(currentActivity.getFragmentManager(), "AddNewCard");
@@ -248,7 +266,7 @@ public class StripeModule extends ReactContextBaseJavaModule {
     getPayFlow().paymentRequestWithAndroidPay(payParams, promise);
   }
 
-  public void attachPaymentResultActivityListener(final Promise promise) {
+  private void attachPaymentResultActivityListener(final Promise promise) {
     ActivityEventListener ael = new BaseActivityEventListener() {
 
       @Override
@@ -259,7 +277,22 @@ public class StripeModule extends ReactContextBaseJavaModule {
           @Override
           public void onSuccess(@NonNull PaymentIntentResult result) {
             getReactApplicationContext().removeActivityEventListener(ael);
-            promise.resolve(convertPaymentIntentResultToWritableMap(result));
+
+            StripeIntent.Status resultingStatus = result.getIntent().getStatus();
+
+            if (Succeeded.equals(resultingStatus) ||
+                RequiresCapture.equals(resultingStatus) ||
+                RequiresConfirmation.equals(resultingStatus)) {
+              promise.resolve(convertPaymentIntentResultToWritableMap(result));
+            } else {
+              if (Canceled.equals(resultingStatus) ||
+                  RequiresAction.equals(resultingStatus)
+              ) {
+                promise.reject(CANCELLED, CANCELLED);      // TODO - normalize the message
+              } else {
+                promise.reject(FAILED, FAILED);
+              }
+            }
           }
 
           @Override
@@ -279,7 +312,7 @@ public class StripeModule extends ReactContextBaseJavaModule {
     getReactApplicationContext().addActivityEventListener(ael);
   }
 
-  public void attachSetupResultActivityListener(final Promise promise) {
+  private void attachSetupResultActivityListener(final Promise promise) {
     ActivityEventListener ael = new BaseActivityEventListener() {
       @Override
       public void onActivityResult(Activity a, int requestCode, int resultCode, Intent data) {
@@ -289,7 +322,28 @@ public class StripeModule extends ReactContextBaseJavaModule {
           @Override
           public void onSuccess(@NonNull SetupIntentResult result) {
             getReactApplicationContext().removeActivityEventListener(ael);
-            promise.resolve(convertSetupIntentResultToWritableMap(result));
+
+            try {
+              switch (result.getIntent().getStatus()) {
+                case Canceled:
+                  // The Setup Intent was canceled, so reject the promise with a predefined code.
+                  promise.reject(CANCELLED, "The SetupIntent was canceled by the user.");
+                  break;
+                case RequiresAction:
+                case RequiresPaymentMethod:
+                  promise.reject(AUTHENTICATION_FAILED, "The user failed authentication.");
+                  break;
+                case Succeeded:
+                  promise.resolve(convertSetupIntentResultToWritableMap(result));
+                  break;
+                case RequiresCapture:
+                case RequiresConfirmation:
+                default:
+                  promise.reject(UNEXPECTED, "Unexpected state");
+              }
+            } catch (Exception e) {
+              promise.reject(UNEXPECTED, "Unexpected error");
+            }
           }
 
           @Override
@@ -416,6 +470,9 @@ public class StripeModule extends ReactContextBaseJavaModule {
     String returnURL = getStringOrNull(options, "returnURL");
     String clientSecret = options.getString("clientSecret");
     ConfirmSetupIntentParams csip = null;
+    if (returnURL ==  null) {
+      returnURL = "stripejs://use_stripe_sdk/return_url";
+    }
 
     if (paymentMethod != null) {
       csip = ConfirmSetupIntentParams.create(extractPaymentMethodCreateParams(paymentMethod),
@@ -440,6 +497,9 @@ public class StripeModule extends ReactContextBaseJavaModule {
     // String sourceId = getStringOrNull(options,"sourceId");
 
     String returnURL = getStringOrNull(options, "returnURL");
+    if (returnURL ==  null) {
+      returnURL = "stripejs://use_stripe_sdk/return_url";
+    }
     boolean savePaymentMethod = getBooleanOrNull(options, "savePaymentMethod", false);
 
     // TODO support extra params in each of the create methods below

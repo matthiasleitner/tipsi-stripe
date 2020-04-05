@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import stripe from 'tipsi-stripe'
 import Button from '../components/Button'
 import testID from '../utils/testID'
@@ -68,8 +68,9 @@ export default class SetupIntentScreen extends PureComponent {
 
       this.setState({ ...this.state, loading: false, confirmSetupResult })
     } catch (e) {
-      console.log(e)
-      this.setState({ ...this.state, loading: false })
+      console.log('error')
+      console.dir(e)
+      this.setState({ ...this.state, loading: false, confirmSetupResult: e })
     }
   }
 
@@ -80,7 +81,7 @@ export default class SetupIntentScreen extends PureComponent {
       this.setState({ ...this.state, showCardSelection: !showCardSelection })
 
     return (
-      <View style={styles.column}>
+      <ScrollView style={styles.column}>
         <Text style={styles.header}>Create Setup Intent</Text>
 
         <Button
@@ -95,6 +96,12 @@ export default class SetupIntentScreen extends PureComponent {
             <Text style={styles.content} {...testID('setupIntentObject')}>
               Source: {JSON.stringify(setupIntent)}
             </Text>
+
+            {confirmSetupResult && (
+              <Text style={styles.content} {...testID('confirmSetupResult')}>
+                confirmSetupResult: {JSON.stringify(confirmSetupResult)}
+              </Text>
+            )}
 
             <View style={styles.row}>
               <Button
@@ -118,12 +125,6 @@ export default class SetupIntentScreen extends PureComponent {
                   />
                 </View>
               ))}
-
-            {confirmSetupResult && (
-              <Text style={styles.content} {...testID('confirmSetupResult')}>
-                confirmSetupResult: {JSON.stringify(confirmSetupResult)}
-              </Text>
-            )}
           </>
         )}
 
@@ -132,7 +133,7 @@ export default class SetupIntentScreen extends PureComponent {
             Error: {JSON.stringify(error)}
           </Text>
         )}
-      </View>
+      </ScrollView>
     )
   }
 }

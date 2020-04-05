@@ -275,6 +275,17 @@ export default class PaymentIntentScreen extends PureComponent {
               Source: {JSON.stringify(paymentIntent)}
             </Text>
 
+            {token && (
+              <Text style={styles.content} {...testID('token')}>
+                token: {JSON.stringify(token)}
+              </Text>
+            )}
+            {display && (
+              <Text style={styles.content} {...testID('display')}>
+                {JSON.stringify(display)}
+              </Text>
+            )}
+
             <View style={styles.row}>
               <Button
                 style={styles.rowButton}
@@ -304,16 +315,6 @@ export default class PaymentIntentScreen extends PureComponent {
                 </View>
               ))}
 
-            {token && (
-              <Text style={styles.content} {...testID('token')}>
-                token: {JSON.stringify(token)}
-              </Text>
-            )}
-            {display && (
-              <Text style={styles.content} {...testID('display')}>
-                {JSON.stringify(display)}
-              </Text>
-            )}
           </>
         )}
 

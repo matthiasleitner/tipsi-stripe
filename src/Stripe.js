@@ -54,7 +54,7 @@ import deprecatedMethodsForInstance from './Stripe.deprecated'
  * @property {number} created
  * @property {boolean} livemode
  * @property {string} type
- * @property {PaymentMethodCard} PaymentMethodCard
+ * @property {PaymentMethodCard} card
  * @property {PaymentMethodBillingDetails} billingDetails
  * @property {string} customerId to set this, you must attach the PaymentMethod to a customer on your backend
  */
@@ -77,7 +77,6 @@ import deprecatedMethodsForInstance from './Stripe.deprecated'
 
 /**
  * @typedef {Object} CreatePaymentMethodParams
- * @property {string} id
  * @property {BillingDetails} billingDetails
  * @property {(PaymentMethodCardParams|PaymentMethodParamsCardByToken)} card - the Parameters to build a card
  * @property {Object} metadata
@@ -89,7 +88,7 @@ import deprecatedMethodsForInstance from './Stripe.deprecated'
  * @property {CreatePaymentMethodParams} paymentMethod
  * @property {string} paymentMethodId
  * @property {string} sourceId
- * @property {string} returnURL
+ * @property {string} returnURL - Optional see: https://stripe.com/docs/mobile/ios/authentication#return-url
  * @property {boolean} savePaymentMethod
  */
 
@@ -102,6 +101,7 @@ import deprecatedMethodsForInstance from './Stripe.deprecated'
 /**
  * @typedef {Object} AuthenticatePaymentIntentParams
  * @property {string} clientSecret
+ * @property {string} returnURL - Optional see: https://stripe.com/docs/mobile/ios/authentication#return-url
  */
 
 /**
@@ -115,24 +115,27 @@ import deprecatedMethodsForInstance from './Stripe.deprecated'
  * @property {string} clientSecret
  * @property {CreatePaymentMethodParams} paymentMethod
  * @property {string} paymentMethodId
- * @property {string} returnURL
+ * @property {string} returnURL - Optional see: https://stripe.com/docs/mobile/ios/authentication#return-url
  */
 
 /**
  * @typedef {Object} SetupIntentConfirmationResult
  * @property {StripeSetupIntentStatus} status
  * @property {string} setupIntentId
+ * @property {string} paymentMethodId -- if available
  */
 
 /**
  * @typedef {Object} AuthenticateSetupIntentParams
  * @property {string} clientSecret
+ * @property {string} returnURL - Optional see: https://stripe.com/docs/mobile/ios/authentication#return-url
  */
 
 /**
  * @typedef {Object} SetupIntentAuthenticationResult
  * @property {StripeSetupIntentStatus} status
  * @property {string} setupIntentId
+ * @property {string} paymentMethodId -- if available
  */
 
 const { StripeModule } = NativeModules
@@ -146,7 +149,7 @@ class Stripe {
   }
   /**
    * @param options: {StripeOptions}
-   * @returns {void}
+   * @returns {Promise<void>}
    */
   setOptions = (options = {}) => {
     checkArgs(types.setOptionsOptionsPropTypes, options, 'options', 'Stripe.setOptions')
@@ -155,6 +158,8 @@ class Stripe {
 
     return StripeModule.init(options, errorCodes)
   }
+
+  setStripeAccount = (stripeAccount) => StripeModule.setStripeAccount(stripeAccount)
 
   /**
    * Normalizes a card's brand in the format of a short identifier called a 'slug', eg 'amex'

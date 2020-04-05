@@ -69,13 +69,16 @@ TPSStripeBridgeKeyDeclare(confirmPaymentIntent, savePaymentMethod);
 
 TPSStripeBridgeTypeDefine(ConfirmPaymentIntentResult);
 TPSStripeBridgeKeyDeclare(ConfirmPaymentIntentResult, paymentIntentId);
+TPSStripeBridgeKeyDeclare(ConfirmPaymentIntentResult, paymentMethodId);
 TPSStripeBridgeKeyDeclare(ConfirmPaymentIntentResult, status);
 
 TPSStripeBridgeTypeDefine(authenticatePaymentIntent);
 TPSStripeBridgeKeyDeclare(authenticatePaymentIntent, clientSecret);
+TPSStripeBridgeKeyDeclare(authenticatePaymentIntent, returnURL);
 
 TPSStripeBridgeTypeDefine(AuthenticatePaymentIntentResult);
 TPSStripeBridgeKeyDeclare(AuthenticatePaymentIntentResult, paymentIntentId);
+TPSStripeBridgeKeyDeclare(AuthenticatePaymentIntentResult, paymentMethodId);
 TPSStripeBridgeKeyDeclare(AuthenticatePaymentIntentResult, status);
 
 TPSStripeBridgeTypeDefine(confirmSetupIntent);
@@ -88,13 +91,16 @@ TPSStripeBridgeKeyDeclare(confirmSetupIntent, savePaymentMethod);
 
 TPSStripeBridgeTypeDefine(ConfirmSetupIntentResult);
 TPSStripeBridgeKeyDeclare(ConfirmSetupIntentResult, setupIntentId);
+TPSStripeBridgeKeyDeclare(ConfirmSetupIntentResult, paymentMethodId);
 TPSStripeBridgeKeyDeclare(ConfirmSetupIntentResult, status);
 
 TPSStripeBridgeTypeDefine(authenticateSetupIntent);
 TPSStripeBridgeKeyDeclare(authenticateSetupIntent, clientSecret);
+TPSStripeBridgeKeyDeclare(authenticateSetupIntent, returnURL);
 
 TPSStripeBridgeTypeDefine(AuthenticateSetupIntentResult);
 TPSStripeBridgeKeyDeclare(AuthenticateSetupIntentResult, setupIntentId);
+TPSStripeBridgeKeyDeclare(AuthenticateSetupIntentResult, paymentMethodId);
 TPSStripeBridgeKeyDeclare(AuthenticateSetupIntentResult, status);
 
 TPSStripeBridgeTypeDefine(PaymentIntentStatus);
